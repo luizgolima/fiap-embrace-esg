@@ -1,4 +1,4 @@
-package com.example.embraceesg
+package com.example.embraceesg.model
 
 data class Atividade(
     val id: Int?,

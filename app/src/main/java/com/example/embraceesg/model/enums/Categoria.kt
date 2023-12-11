@@ -1,4 +1,4 @@
-package com.example.embraceesg
+package com.example.embraceesg.model.enums
 
 enum class Categoria {
     CULTIVO_HORTA_DOMESTICA,

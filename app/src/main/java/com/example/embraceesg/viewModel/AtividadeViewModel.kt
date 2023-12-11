@@ -1,7 +1,9 @@
-package com.example.embraceesg
+package com.example.embraceesg.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.embraceesg.model.Atividade
+import com.example.embraceesg.repository.AtividadeRepository
 import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
