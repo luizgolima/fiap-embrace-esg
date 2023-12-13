@@ -39,6 +39,8 @@ fun AtividadesScreen() {
     val categoriaSelecionadaExpanded = remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    val atividadeEditando = remember { mutableStateOf<Atividade?>(null) }
+
     LaunchedEffect(key1 = viewModel) {
         viewModel.getAtividades { result ->
             atividades.value = result ?: emptyList()
@@ -108,51 +110,59 @@ fun AtividadesScreen() {
             Button(
                 onClick = {
                     val novaAtividade = Atividade(
-                        id = null,
+                        id = atividadeEditando.value?.id,
                         titulo = novoTitulo.value,
                         descricao = novaDescricao.value,
                         categoria = categoriaSelecionada.value.name,
-                        criadoEm = null,
+                        criadoEm = atividadeEditando.value?.criadoEm,
                         usuarioId = 1
                     )
-                    viewModel.createAtividade(novaAtividade) { result ->
-                        if (result != null) {
-                            novoTitulo.value = ""
-                            novaDescricao.value = ""
-                            categoriaSelecionada.value = Categoria.CULTIVO_HORTA_DOMESTICA
+                    if (atividadeEditando.value == null) {
+                        // Se não há uma atividade sendo editada, crie uma nova atividade
+                        viewModel.createAtividade(novaAtividade) { result ->
+                            if (result != null) {
+                                novoTitulo.value = ""
+                                novaDescricao.value = ""
+                                categoriaSelecionada.value = Categoria.CULTIVO_HORTA_DOMESTICA
 
-                            viewModel.getAtividades { result ->
-                                atividades.value = result ?: emptyList()
+                                viewModel.getAtividades { result ->
+                                    atividades.value = result ?: emptyList()
+                                }
                             }
                         }
+                    } else {
+                        // Se há uma atividade sendo editada, atualize essa atividade
+                        viewModel.updateAtividade(
+                            atividadeEditando.value!!.id ?: -1, novaAtividade
+                        ) { result ->
+                            if (result != null) {
+                                novoTitulo.value = ""
+                                novaDescricao.value = ""
+                                categoriaSelecionada.value = Categoria.CULTIVO_HORTA_DOMESTICA
+
+                                viewModel.getAtividades { result ->
+                                    atividades.value = result ?: emptyList()
+                                }
+                            }
+                        }
+                        // Limpe a atividade que está sendo editada
+                        atividadeEditando.value = null
                     }
                 }, modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp)
             ) {
-                Text("Adicionar Atividade")
+                Text(
+                    if (atividadeEditando.value == null) "Adicionar Atividade"
+                    else "Atualizar Atividade"
+                )
             }
 
             AtividadesList(atividades = atividades.value, onEditClick = { atividade ->
-                val editaAtividade = Atividade(
-                    id = atividade.id,
-                    titulo = novoTitulo.value,
-                    descricao = novaDescricao.value,
-                    categoria = categoriaSelecionada.value.name,
-                    criadoEm = atividade.criadoEm,
-                    usuarioId = 1
-                )
-                viewModel.updateAtividade(atividade.id ?: -1, editaAtividade) { result ->
-                    if (result != null) {
-                        novoTitulo.value = ""
-                        novaDescricao.value = ""
-                        categoriaSelecionada.value = Categoria.CULTIVO_HORTA_DOMESTICA
-
-                        viewModel.getAtividades { result ->
-                            atividades.value = result ?: emptyList()
-                        }
-                    }
-                }
+                atividadeEditando.value = atividade
+                novoTitulo.value = atividade.titulo
+                novaDescricao.value = atividade.descricao
+                categoriaSelecionada.value = Categoria.valueOf(atividade.categoria)
             }, onDeleteClick = { atividade ->
                 viewModel.deleteAtividade(atividade.id ?: -1) {
                     viewModel.getAtividades { result ->
