@@ -1,5 +1,6 @@
 package com.example.embraceesg.view
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,14 +19,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.embraceesg.model.Atividade
 import com.example.embraceesg.model.enums.Categoria
 import com.example.embraceesg.viewModel.AtividadeViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun AtividadesScreen() {
     val viewModel: AtividadeViewModel = viewModel()
@@ -34,6 +37,7 @@ fun AtividadesScreen() {
     val novaDescricao = remember { mutableStateOf("") }
     val categoriaSelecionada = remember { mutableStateOf(Categoria.CULTIVO_HORTA_DOMESTICA) }
     val categoriaSelecionadaExpanded = remember { mutableStateOf(false) }
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     LaunchedEffect(key1 = viewModel) {
         viewModel.getAtividades { result ->
@@ -41,7 +45,9 @@ fun AtividadesScreen() {
         }
     }
 
-    Surface {
+    Surface(modifier = Modifier
+        .fillMaxSize()
+        .clickable { keyboardController?.hide() }) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -57,16 +63,14 @@ fun AtividadesScreen() {
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            OutlinedTextField(
-                value = novoTitulo.value,
+            OutlinedTextField(value = novoTitulo.value,
                 onValueChange = { novoTitulo.value = it },
                 label = { Text("Título") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 8.dp)
             )
-            OutlinedTextField(
-                value = novaDescricao.value,
+            OutlinedTextField(value = novaDescricao.value,
                 onValueChange = { novaDescricao.value = it },
                 label = { Text("Descrição") },
                 modifier = Modifier
@@ -130,8 +134,20 @@ fun AtividadesScreen() {
             }
 
             AtividadesList(atividades = atividades.value, onEditClick = { atividade ->
-                viewModel.updateAtividade(atividade.id ?: -1, atividade) { result ->
+                val editaAtividade = Atividade(
+                    id = atividade.id,
+                    titulo = novoTitulo.value,
+                    descricao = novaDescricao.value,
+                    categoria = categoriaSelecionada.value.name,
+                    criadoEm = atividade.criadoEm,
+                    usuarioId = 1
+                )
+                viewModel.updateAtividade(atividade.id ?: -1, editaAtividade) { result ->
                     if (result != null) {
+                        novoTitulo.value = ""
+                        novaDescricao.value = ""
+                        categoriaSelecionada.value = Categoria.CULTIVO_HORTA_DOMESTICA
+
                         viewModel.getAtividades { result ->
                             atividades.value = result ?: emptyList()
                         }
