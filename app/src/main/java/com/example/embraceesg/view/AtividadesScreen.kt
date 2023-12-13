@@ -1,5 +1,6 @@
 package com.example.embraceesg.view
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,7 +22,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.embraceesg.model.Atividade
@@ -38,7 +41,6 @@ fun AtividadesScreen() {
     val categoriaSelecionada = remember { mutableStateOf(Categoria.CULTIVO_HORTA_DOMESTICA) }
     val categoriaSelecionadaExpanded = remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
-
     val atividadeEditando = remember { mutableStateOf<Atividade?>(null) }
 
     LaunchedEffect(key1 = viewModel) {
@@ -59,10 +61,14 @@ fun AtividadesScreen() {
                 title = {
                     Text(
                         "Embrace ESG",
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.DarkGray
                     )
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White),
             )
 
             OutlinedTextField(value = novoTitulo.value,
@@ -118,7 +124,6 @@ fun AtividadesScreen() {
                         usuarioId = 1
                     )
                     if (atividadeEditando.value == null) {
-                        // Se não há uma atividade sendo editada, crie uma nova atividade
                         viewModel.createAtividade(novaAtividade) { result ->
                             if (result != null) {
                                 novoTitulo.value = ""
@@ -131,7 +136,6 @@ fun AtividadesScreen() {
                             }
                         }
                     } else {
-                        // Se há uma atividade sendo editada, atualize essa atividade
                         viewModel.updateAtividade(
                             atividadeEditando.value!!.id ?: -1, novaAtividade
                         ) { result ->
@@ -145,7 +149,6 @@ fun AtividadesScreen() {
                                 }
                             }
                         }
-                        // Limpe a atividade que está sendo editada
                         atividadeEditando.value = null
                     }
                 }, modifier = Modifier
@@ -154,7 +157,7 @@ fun AtividadesScreen() {
             ) {
                 Text(
                     if (atividadeEditando.value == null) "Adicionar Atividade"
-                    else "Atualizar Atividade"
+                    else "Atualizar Atividade", color = Color.White // Altere para a cor desejada
                 )
             }
 
